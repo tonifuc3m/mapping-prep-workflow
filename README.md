@@ -1,11 +1,14 @@
 # mapping-prep-workflow
-Script to prepare files for normalization annotators.
-Adds suggestions from 3 datasets (BARR, NER, PharmaCoNER) and from Snomed mapping thanks to TEMUNormalizer.
+Repo to prepare files for normalization annotators.
+
+It adds suggestions from 3 datasets (BARR, NER, PharmaCoNER) and from Snomed mapping thanks to TEMUNormalizer.
 
 ### Requirements
-See TEMUNormalizer requirements. Add pandas and numpy
-Needs a data/ folder with 4 TSVs:./data/BARR.tsv, ./data/NER.tsv, ./pharmaconer.tsv and ./data/SpanishSnomed_tmp.tsv
-Python3
++ Python3
++ Install TEMUNormalizer requirements (```python -m pip install -r TEMUNormalizer/requirements.txt```) 
++ Also, pip install pandas and numpy (```python -m pip install pandas numpy```) 
++ Needs a data/ folder with 4 TSVs:./data/BARR.tsv, ./data/NER.tsv, ./pharmaconer.tsv and ./data/SpanishSnomed.tsv
+
 
 ### Usage usage
 ```
