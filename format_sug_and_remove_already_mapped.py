@@ -20,7 +20,7 @@ def get_meaningful_description(x, pattern=end_parenth):
     return real_description
 
 
-def main(tsv_with_sug, outpath, snomed_path='/home/antonio/Documents/Projects/ner-v2/scripts/mapping-workflow/SpanishSnomed_tmp.tsv'):
+def main(tsv_with_sug, outpath, snomed_path='./data/SpanishSnomed_tmp.tsv'):
     '''
     
     Parameters
@@ -34,19 +34,24 @@ def main(tsv_with_sug, outpath, snomed_path='/home/antonio/Documents/Projects/ne
     '''
     
     ## 4.1 Merge three types of suggestions
-    ## Priority: 1) NER (code_ner), 2) PharmaCoNER (code_pharmaconer), 3) BARR (code_barr)
+    ## Priority: 1) NER (code_ner), 2) PharmaCoNER (code_pharmaconer), 
+    ## 3) BARR (code_barr), 4) TEMUnormalizer (code_TEMU)
     # 4.1.1 If there is NER suggestion, put other suggestion to np.nan()
     idx_with_NER_suggestions = tsv_with_sug.loc[tsv_with_sug['code_ner'].isna()==False,:].index
     tsv_with_sug.loc[idx_with_NER_suggestions, \
-                       ['code_pharmaconer','code_barr']] = np.nan
+                       ['code_pharmaconer','code_barr', 'code_TEMU']] = np.nan
     
-    # 4.1.2 If there is PharmaCoNER suggestion, put BARR suggestion to np.nan()
+    # 4.1.2 If there is PharmaCoNER suggestion, put other suggestion to np.nan()
     idx_with_phner_suggestions = tsv_with_sug.loc[tsv_with_sug['code_pharmaconer'].isna()==False,:].index
-    tsv_with_sug.loc[idx_with_phner_suggestions,['code_barr']] = np.nan
+    tsv_with_sug.loc[idx_with_phner_suggestions,['code_barr', 'code_TEMU']] = np.nan
+    
+    # 4.1.3 If there is BARR suggestions, put TEMUnormalizer suggestion to np.nan()
+    idx_with_phner_suggestions = tsv_with_sug.loc[tsv_with_sug['code_barr'].isna()==False,:].index
+    tsv_with_sug.loc[idx_with_phner_suggestions,['code_TEMU']] = np.nan
 
     
     # 4.1.3 Merge suggestions
-    tsv_with_sug['code_sug'] = tsv_with_sug[['code_pharmaconer', 'code_ner', 'code_barr']].\
+    tsv_with_sug['code_sug'] = tsv_with_sug[['code_pharmaconer', 'code_ner', 'code_barr', 'code_TEMU']].\
         apply(lambda x: ','.join(x.dropna().astype(str)), axis=1)
         
         
@@ -67,6 +72,8 @@ def main(tsv_with_sug, outpath, snomed_path='/home/antonio/Documents/Projects/ne
     tsv_already_mapped.sort_values(by=['span_norm']).drop_duplicates(['label','span_norm']).\
         to_csv(os.path.join(outpath, 'this_bunch_already_mapped.tsv'),
                sep='\t', header=True, index=False)
+    print(f'[OUTPUT] TSV with the entities of this bunch that were already normalized here: {os.path.join(outpath, "this_bunch_no_mapping.tsv")}. These entities need to be validated')
+
     
     tsv_not_mapped = tsv_with_sug_ok.drop(idx_already_mapped).copy()
     tsv_not_mapped['FINAL_CODE'] = ''

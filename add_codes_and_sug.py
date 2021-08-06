@@ -11,6 +11,7 @@ import os
 #from googletrans import Translator
 import pickle
 #from mstranslator import Translator
+from TEMUNormalizer import TEMUnormalizer
 
 def save_obj(directory, obj, name):
     '''Helper function using pickle to save and load objects'''
@@ -50,19 +51,28 @@ def main(tsv, already_mapped_tsv_path, outpath):
     tsv_with_old_codes = add_code_old_tsv(tsv, already_mapped_tsv_path)
     
     ## 2.3 Add PharmacoNER suggestions
-    pharmaconer = pd.read_csv('/home/antonio/Documents/Projects/ner-v2/scripts/mapping-workflow/data/pharmaconer.tsv',
+    pharmaconer = pd.read_csv('./data/pharmaconer.tsv',
                               sep='\t', header=None, names=['span_norm', 'code_pharmaconer'], dtype=str)
     tsv_with_old_codes = pd.merge(tsv_with_old_codes, pharmaconer, how='left', on=['span_norm']).copy()
     
     ## 2.4 Add NER suggestions
-    ner = pd.read_csv('/home/antonio/Documents/Projects/ner-v2/scripts/mapping-workflow/data/NER.tsv',
+    ner = pd.read_csv('./data/NER.tsv',
                       sep='\t', header=None, names=['span_norm', 'code_ner'], dtype=str)
     tsv_with_old_codes = pd.merge(tsv_with_old_codes, ner, how='left', on=['span_norm']).copy()
     
     ## 2.5 Add BARR suggestions
-    barr = pd.read_csv('/home/antonio/Documents/Projects/ner-v2/scripts/mapping-workflow/data/BARR.tsv',
+    barr = pd.read_csv('./data/BARR.tsv',
                       sep='\t', header=None, names=['span_norm', 'code_barr'], dtype=str)
     tsv_with_old_codes = pd.merge(tsv_with_old_codes, barr, how='left', on=['span_norm']).copy()
+    
+    ## 2.6 Add TEMUNormalizer suggestions
+    reference_dict = TEMUnormalizer.loadDict('./data/SpanishSnomed_tmp.tsv')
+    termdic = {k:'' for k in tsv_with_old_codes.span_norm.values}
+    termdic = TEMUnormalizer.directMatch(termdic,reference_dict)
+    termdic = TEMUnormalizer.fuzzyMatch(termdic,reference_dict,93)
+    termdic_clean = {k:v[0][0][0] if v!='' else '' for (k,v) in termdic.items()}
+    temun = tsv_with_old_codes['span_norm'].map(termdic_clean)
+    tsv_with_old_codes = tsv_with_old_codes.assign(code_TEMU=temun.values)
     
     ## 2.6 Frecuencia aparición span_norm
     span_norm_count = tsv_with_old_codes.groupby(['span_norm'])['span_norm'].count()
@@ -72,6 +82,6 @@ def main(tsv, already_mapped_tsv_path, outpath):
     ## Order alphabetically and to_csv
     tsv_with_old_codes.sort_values(by=['span_norm']).\
         to_csv(os.path.join(outpath, 'all_before_mapping.tsv'), sep='\t', header=True, index=False)
-    
+    print(f"[OUTPUT] DO NOT USE THIS. THIS IS ONLY FOR REFERENCE: TSV with all the entities of the bunch here: {os.path.join(outpath, 'all_before_mapping.tsv')}")
    
     return tsv_with_old_codes
