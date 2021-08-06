@@ -20,7 +20,7 @@ def get_meaningful_description(x, pattern=end_parenth):
     return real_description
 
 
-def main(tsv_with_sug, outpath, snomed_path='./data/SpanishSnomed_tmp.tsv'):
+def main(tsv_with_sug, outpath, snomed_path='./data/SpanishSnomed.tsv'):
     '''
     
     Parameters
@@ -72,7 +72,7 @@ def main(tsv_with_sug, outpath, snomed_path='./data/SpanishSnomed_tmp.tsv'):
     tsv_already_mapped.sort_values(by=['span_norm']).drop_duplicates(['label','span_norm']).\
         to_csv(os.path.join(outpath, 'this_bunch_already_mapped.tsv'),
                sep='\t', header=True, index=False)
-    print(f'[OUTPUT] TSV with the entities of this bunch that were already normalized here: {os.path.join(outpath, "this_bunch_no_mapping.tsv")}. These entities need to be validated')
+    print(f'[OUTPUT] TSV with the entities of this bunch that were already normalized here: {os.path.join(outpath, "this_bunch_already_mapped.tsv")}. These entities need to be validated')
 
     
     tsv_not_mapped = tsv_with_sug_ok.drop(idx_already_mapped).copy()

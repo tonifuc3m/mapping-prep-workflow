@@ -66,7 +66,7 @@ def main(tsv, already_mapped_tsv_path, outpath):
     tsv_with_old_codes = pd.merge(tsv_with_old_codes, barr, how='left', on=['span_norm']).copy()
     
     ## 2.6 Add TEMUNormalizer suggestions
-    reference_dict = TEMUnormalizer.loadDict('./data/SpanishSnomed_tmp.tsv')
+    reference_dict = TEMUnormalizer.loadDict('./data/SpanishSnomed.tsv')
     termdic = {k:'' for k in tsv_with_old_codes.span_norm.values}
     termdic = TEMUnormalizer.directMatch(termdic,reference_dict)
     termdic = TEMUnormalizer.fuzzyMatch(termdic,reference_dict,93)
